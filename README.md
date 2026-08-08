@@ -33,7 +33,7 @@ Sub-bullets ride along with their parent bullet and are never reordered among th
 
 ## Install
 
-### Option A — one document (fastest)
+### Option A — one document (fastest, personal use)
 
 1. Open the Google Doc you want to sort lists in.
 2. **Extensions → Apps Script**.
@@ -42,20 +42,23 @@ Sub-bullets ride along with their parent bullet and are never reordered among th
 5. Save (⌘S), then reload the Google Doc.
 6. The commands appear under **Extensions → Sort Bullets**. The first run asks for authorisation; approve it.
 
-### Option B — clasp (version-controlled, reusable across docs)
+### Option B — clasp, standalone project (required for publishing)
 
 ```bash
 npm install -g @google/clasp
 clasp login
-clasp create --type docs --title "Sort Bullets"   # run inside this folder
+clasp create --type standalone --title "Sort Bullets"   # run inside this folder
 clasp push
 ```
+
+Use `--type standalone`, not `--type docs` — the latter creates a *new document* with a bound script, and
+Editor add-ons cannot be published from a bound script.
 
 `clasp create` writes a `.clasp.json` (git-ignored) and its own `appsscript.json` — keep the one in this repo,
 it already sets the V8 runtime and the two scopes the add-on needs.
 
-To use it from any document rather than one: in the Apps Script editor choose **Deploy → Test deployments →
-Install**, or **Deploy → New deployment → Google Workspace Add-on** and share it with yourself.
+To use it across your own documents before publishing anything: **Deploy → Test deployments → Install** in the
+Apps Script editor. The add-on then appears under **Extensions** in every doc on your account.
 
 ## Use
 
@@ -83,18 +86,34 @@ Details worth knowing:
 
 ## Publishing to the Workspace Marketplace
 
-Only needed if you want to distribute it beyond your own account. Add this to `appsscript.json` and follow the
-[editor add-on publishing guide](https://developers.google.com/workspace/add-ons/how-tos/publish-addon-overview):
+Needed only to distribute this beyond your own account. No manifest changes are required — the Apps Script
+manifest has no Editor-add-on-specific properties, so the `appsscript.json` in this repo is already what you
+publish. (The `addOns` block with `homepageTrigger` belongs to *Google Workspace add-ons*, the card-based
+kind. This is a classic Editor add-on: `onOpen` plus a menu.)
 
-```json
-"addOns": {
-  "common": {
-    "name": "Sort Bullets",
-    "logoUrl": "https://example.com/icon-128.png"
-  },
-  "docs": {}
-}
-```
+**Prerequisite: the script project must be standalone.** An Editor add-on cannot be published from a
+container-bound script, so the copy-paste install in Option A is for personal use only. Use Option B.
+
+1. **Standard Cloud project.** Apps Script's auto-generated project can't be used for publication. Create one
+   at [console.cloud.google.com](https://console.cloud.google.com/projectcreate), then in the Apps Script
+   editor go to **Project Settings → Google Cloud Platform (GCP) Project → Change project** and paste the
+   project number.
+2. **OAuth consent screen.** Configure it in the Cloud console. The two scopes here (`documents.currentonly`,
+   `script.container.ui`) are narrow and non-sensitive, which keeps verification simple.
+3. **Create a version.** In the Apps Script editor: **Deploy → Manage deployments**, create a version, and
+   note the version number — Editor add-ons are published by version number, not deployment ID.
+4. **Enable the Google Workspace Marketplace SDK** on the Cloud project and fill in the app configuration,
+   pointing it at the script ID and version from step 3.
+5. **Store listing.** Icons must be square, in colour, with transparent backgrounds; screenshots must be
+   legible and actually show the add-on. Every link in the listing has to resolve.
+6. **Choose visibility and submit.** Private (your Workspace domain only) publishes immediately with no
+   Google review. Public goes through Marketplace review, typically several days.
+
+**Visibility cannot be changed after you save it**, so decide private vs. public before submitting.
+
+References: [publish an Editor add-on](https://developers.google.com/workspace/add-ons/how-tos/publish-add-on-overview)
+· [how to publish](https://developers.google.com/workspace/marketplace/how-to-publish)
+· [app review](https://developers.google.com/workspace/marketplace/about-app-review)
 
 ## Tests
 
