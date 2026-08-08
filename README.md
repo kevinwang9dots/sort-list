@@ -84,36 +84,57 @@ Details worth knowing:
 - The highlight has to be one unbroken run of bullets. A blank line or paragraph in the middle stops the sort
   with an explanation rather than shuffling items across two separate lists.
 
-## Publishing to the Workspace Marketplace
+## Publishing privately to 9dots.org
 
-Needed only to distribute this beyond your own account. No manifest changes are required — the Apps Script
-manifest has no Editor-add-on-specific properties, so the `appsscript.json` in this repo is already what you
-publish. (The `addOns` block with `homepageTrigger` belongs to *Google Workspace add-ons*, the card-based
-kind. This is a classic Editor add-on: `onOpen` plus a menu.)
+This add-on is published **private to the 9dots.org Workspace domain**: only people in the organisation can
+find or install it, and it goes live immediately with no Google review.
 
-**Prerequisite: the script project must be standalone.** An Editor add-on cannot be published from a
-container-bound script, so the copy-paste install in Option A is for personal use only. Use Option B.
+No manifest changes are needed. The Apps Script manifest has no Editor-add-on-specific properties, so the
+`appsscript.json` in this repo is already what gets published. (An `addOns` block with `homepageTrigger` would
+belong to a *Google Workspace add-on*, the card-based kind — this is a classic Editor add-on: `onOpen` plus a
+menu.)
 
-1. **Standard Cloud project.** Apps Script's auto-generated project can't be used for publication. Create one
-   at [console.cloud.google.com](https://console.cloud.google.com/projectcreate), then in the Apps Script
-   editor go to **Project Settings → Google Cloud Platform (GCP) Project → Change project** and paste the
-   project number.
-2. **OAuth consent screen.** Configure it in the Cloud console. The two scopes here (`documents.currentonly`,
-   `script.container.ui`) are narrow and non-sensitive, which keeps verification simple.
-3. **Create a version.** In the Apps Script editor: **Deploy → Manage deployments**, create a version, and
-   note the version number — Editor add-ons are published by version number, not deployment ID.
-4. **Enable the Google Workspace Marketplace SDK** on the Cloud project and fill in the app configuration,
-   pointing it at the script ID and version from step 3.
-5. **Store listing.** Icons must be square, in colour, with transparent backgrounds; screenshots must be
-   legible and actually show the add-on. Every link in the listing has to resolve.
-6. **Choose visibility and submit.** Private (your Workspace domain only) publishes immediately with no
-   Google review. Public goes through Marketplace review, typically several days.
+**Two things decide whether this works, and both are set early:**
 
-**Visibility cannot be changed after you save it**, so decide private vs. public before submitting.
+- **The script project must be standalone.** Editor add-ons cannot be published from a container-bound script,
+  so the copy-paste install in Option A is personal-use only. Use Option B.
+- **The Cloud project must belong to the 9dots.org organisation.** "Private" means visible to the Workspace
+  domain that owns the Cloud project. Create it under a 9dots.org account, not a personal one, or the listing
+  will target the wrong domain.
+
+### Steps
+
+1. **Create the standalone script** — from this repo:
+   ```bash
+   npm install -g @google/clasp
+   clasp login
+   clasp create --type standalone --title "Sort Bullets"
+   clasp push
+   ```
+   Sign in as your 9dots.org account. Note the script ID that `clasp create` prints.
+2. **Create a standard Cloud project** under the 9dots.org org at
+   [console.cloud.google.com](https://console.cloud.google.com/projectcreate). Apps Script's auto-generated
+   project cannot be used for publication. Then in the Apps Script editor: **Project Settings → Google Cloud
+   Platform (GCP) Project → Change project**, and paste the project number.
+3. **OAuth consent screen** — set **User Type: Internal**. Internal apps skip OAuth verification entirely,
+   which is the main reason the private path is fast. The two scopes here
+   (`documents.currentonly`, `script.container.ui`) are narrow and non-sensitive; keep them that way.
+4. **Create a version** — **Deploy → Manage deployments** in the Apps Script editor. Note the version number.
+   Editor add-ons publish by *version number*, not deployment ID.
+5. **Enable the Google Workspace Marketplace SDK** on the Cloud project, then fill in App Configuration:
+   point it at the script ID from step 1 and the version from step 4.
+6. **Store listing** — still required for private apps. Square colour icons with transparent backgrounds, a
+   legible screenshot, and links that resolve.
+7. **Set visibility to Private and submit.** It is live for the domain right away.
+
+**Visibility cannot be changed after you save it.** A private listing cannot later be flipped to public — that
+would mean a new listing.
+
+Domain-wide installation may need a Workspace admin to allowlist the app even though it is private, so check
+with whoever runs the 9dots tenant before promising it to people.
 
 References: [publish an Editor add-on](https://developers.google.com/workspace/add-ons/how-tos/publish-add-on-overview)
 · [how to publish](https://developers.google.com/workspace/marketplace/how-to-publish)
-· [app review](https://developers.google.com/workspace/marketplace/about-app-review)
 
 ## Tests
 
